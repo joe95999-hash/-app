@@ -1,50 +1,812 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>12週增肌特訓</title>
     <meta name="theme-color" content="#c31432">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#c31432',
-              secondary: '#240b36',
-              success: '#2ecc71',
-            }
-          }
-        }
-      }
-    </script>
+    <title>12週增肌特訓</title>
     <style>
-      html { scroll-behavior: smooth; }
-      body { -webkit-tap-highlight-color: transparent; }
-      /* Custom scrollbar hide for tabs if needed */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
+        /* --- APP 核心樣式 --- */
+        :root {
+            --primary: #c31432;
+            --secondary: #240b36;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #333;
+            --green: #2ecc71;
+            --gray: #95a5a6;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 80px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 頂部固定區 */
+        .sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: var(--bg);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 標題欄 */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px;
+            padding-top: max(15px, env(safe-area-inset-top));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-btn {
+            background: rgba(255,255,255,0.25);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .header-btn:active {
+            background: rgba(255,255,255,0.5);
+            transform: scale(0.95);
+        }
+        h1 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; flex-grow: 1; text-align: center; font-weight: 700; }
+
+        /* 總進度條 */
+        .progress-container {
+            background: #e9ecef;
+            height: 25px;
+            position: relative;
+            width: 100%;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 0 0 2px rgba(255,255,255,0.8);
+            z-index: 2;
+        }
+
+        /* 分頁籤 (Tabs) */
+        .tabs {
+            display: flex;
+            background: white;
+            padding: 5px;
+            justify-content: space-around;
+            border-bottom: 1px solid #eee;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            background: none;
+            font-weight: bold;
+            color: #888;
+            font-size: 0.95rem;
+            position: relative;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            color: var(--primary);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 20%; right: 20%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* 提示卡 */
+        .tips-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 12px;
+            margin: 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+
+        /* 頁面切換邏輯 */
+        .day-content {
+            display: none;
+            padding-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .day-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 動作卡片 */
+        .exercise-card {
+            background: var(--card-bg);
+            margin: 15px;
+            padding: 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        /* 圖片/影片區 */
+        .media-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            background: #000;
+            cursor: pointer;
+        }
+        .media-container img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0.9;
+        }
+        .play-icon {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px; height: 50px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            z-index: 2;
+        }
+        .play-icon::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-left: 15px solid white;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            margin-left: 5px;
+        }
+        .media-container iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: 0;
+            z-index: 3;
+        }
+
+        /* 卡片內容區 */
+        .card-content {
+            padding: 15px 20px 15px 20px;
+        }
+
+        /* 完成狀態 */
+        .exercise-card.completed {
+            background: #f0f0f0;
+            border-color: var(--green);
+            opacity: 0.9;
+        }
+        .exercise-card.completed .media-container img {
+            filter: grayscale(100%);
+            opacity: 0.5;
+        }
+        .exercise-card.completed .exercise-title {
+            text-decoration: line-through;
+            color: var(--gray);
+        }
+
+        .exercise-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        .meta-row {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .tempo-tag {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border: 1px solid #c8e6c9;
+        }
+
+        .cue-text {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        /* 按鈕 */
+        .action-area {
+            text-align: right;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+        .check-btn {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .exercise-card.completed .check-btn {
+            background: var(--green);
+            color: white;
+            border-color: var(--green);
+            border: none;
+        }
+
+        /* 底部 */
+        .bottom-nav {
+            text-align: center;
+            padding: 20px;
+            color: #aaa;
+            font-size: 0.8rem;
+        }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
-  }
-}
-</script>
 </head>
-  <body class="bg-[#f8f9fa] text-gray-800 antialiased pb-20">
-    <div id="root"></div>
-  </body>
+<body>
+
+<div class="sticky-top">
+    <header>
+        <button id="resetBtn" class="header-btn" onclick="window.confirmReset()">↺ 重置</button>
+        <h1>12週增肌特訓</h1>
+        <div style="width: 60px;"></div>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-text" id="progressText">總進度 0%</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchDay('day1', this)">Day 1<br><span style="font-size:0.7em">臀部</span></button>
+        <button class="tab-btn" onclick="switchDay('day2', this)">Day 2<br><span style="font-size:0.7em">上肢</span></button>
+        <button class="tab-btn" onclick="switchDay('day3', this)">Day 3<br><span style="font-size:0.7em">居家臀</span></button>
+        <button class="tab-btn" onclick="switchDay('day4', this)">Day 4<br><span style="font-size:0.7em">背部</span></button>
+    </div>
+</div>
+
+<div class="tips-box">
+    <strong>💡 教練提醒：</strong><br>
+    App 會自動記憶進度。請點選上方標籤切換天數。<br>
+    <strong>UFC 節奏 3-1-2-1：</strong> 3秒下放 ➞ 1秒底停 ➞ 2秒發力 ➞ 1秒頂停
+</div>
+
+<div id="day1" class="day-content active">
+    
+    <div class="exercise-card" id="d1-a1">
+        <div class="media-container" onclick="loadVideo(this, '-nm7SrizuN8')">
+            <img src="https://img.youtube.com/vi/-nm7SrizuN8/hqdefault.jpg" alt="臀推">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A1. 槓鈴臀推 (Hip Thrust)</div>
+            <div class="meta-row"><span>4 組</span> <span>8-12 次</span></div>
+            <div class="tempo-tag">節奏 3-1-2-1</div>
+            <div class="cue-text">翹臀主訓練。頂峰用力夾臀停留 1 秒，慢 3 秒下放。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d1-a1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d1-a2">
+        <div class="media-container" onclick="loadVideo(this, 'Z1cQfWDlacw')">
+            <img src="https://img.youtube.com/vi/Z1cQfWDlacw/hqdefault.jpg" alt="下拉">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A2. 滑輪下拉 (Lat Pulldown)</div>
+            <div class="meta-row"><span>4 組</span> <span>8-12 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">慢 3 秒回放，感受背肌拉伸，手肘向下帶。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d1-a2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d1-b1">
+        <div class="media-container" onclick="loadVideo(this, 'ULAiQO2KC38')">
+            <img src="https://img.youtube.com/vi/ULAiQO2KC38/hqdefault.jpg" alt="RDL">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">B1. 羅馬尼亞硬舉 (RDL)</div>
+            <div class="meta-row"><span>3 組</span> <span>10-15 次</span></div>
+            <div class="tempo-tag">節奏 3-1-2-1</div>
+            <div class="cue-text">屁股向後推，膝蓋微彎，針對臀部上提。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d1-b1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d1-b2">
+        <div class="media-container" onclick="loadVideo(this, 'BrcRd1_RGV8')">
+            <img src="https://img.youtube.com/vi/BrcRd1_RGV8/hqdefault.jpg" alt="划船">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">B2. 坐姿划船 (Seated Row)</div>
+            <div class="meta-row"><span>3 組</span> <span>10-15 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">強化上背挺拔，改善圓肩。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d1-b2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d1-c1">
+        <div class="media-container" onclick="loadVideo(this, 'ZKouK_LCpeg')">
+            <img src="https://img.youtube.com/vi/ZKouK_LCpeg/hqdefault.jpg" alt="深蹲">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C1. 史密斯碰椅子深蹲</div>
+            <div class="meta-row"><span>3 組</span> <span>10-12 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">用椅子限制深度，慢 3 秒坐向椅子。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d1-c1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d1-c2">
+        <div class="media-container" onclick="loadVideo(this, 'v0Y8_j6jpac')">
+            <img src="https://img.youtube.com/vi/v0Y8_j6jpac/hqdefault.jpg" alt="側平舉">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C2. 側平舉 (Lateral Raise)</div>
+            <div class="meta-row"><span>3 組</span> <span>12-15 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">雕塑肩膀線條，慢 3 秒放下。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d1-c2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d1-cardio" style="border-left: 5px solid #007bff;">
+        <div class="media-container" onclick="loadVideo(this, 'dRQOkyECJKs')">
+            <img src="https://img.youtube.com/vi/dRQOkyECJKs/hqdefault.jpg" alt="有氧">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">🏃‍♀️ 跑步機有氧 (重訓後)</div>
+            <div class="cue-text">建議時間：20-30 分鐘 (爬坡快走或慢跑)</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d1-cardio')">完成動作</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="day2" class="day-content">
+    
+    <div class="exercise-card" id="d2-a1">
+        <div class="media-container" onclick="loadVideo(this, 'DN5GbsWIiJA')">
+            <img src="https://img.youtube.com/vi/DN5GbsWIiJA/hqdefault.jpg" alt="肩推">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A1. 坐姿肩推 (Seated OHP)</div>
+            <div class="meta-row"><span>4 組</span> <span>8-12 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d2-a1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d2-a2">
+        <div class="media-container" onclick="loadVideo(this, 'NAuRVixzxjE')">
+            <img src="https://img.youtube.com/vi/NAuRVixzxjE/hqdefault.jpg" alt="反手下拉">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A2. 反手握滑輪下拉</div>
+            <div class="meta-row"><span>4 組</span> <span>8-12 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">強化背部線條，反手握法。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d2-a2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d2-b1">
+        <div class="media-container" onclick="loadVideo(this, '3WHl2u2Hdeg')">
+            <img src="https://img.youtube.com/vi/3WHl2u2Hdeg/hqdefault.jpg" alt="上斜臥推">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">B1. 上斜啞鈴臥推</div>
+            <div class="meta-row"><span>3 組</span> <span>10-15 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">針對上胸塑形，慢 3 秒下放。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d2-b1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d2-b2">
+        <div class="media-container" onclick="loadVideo(this, 'cn-kmZrMRec')">
+            <img src="https://img.youtube.com/vi/cn-kmZrMRec/hqdefault.jpg" alt="反向飛鳥">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">B2. 機械式反向飛鳥</div>
+            <div class="meta-row"><span>3 組</span> <span>12-15 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">背挺關鍵動作，訓練肩膀後束。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d2-b2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d2-c1">
+        <div class="media-container" onclick="loadVideo(this, 'RGQAX032NWg')">
+            <img src="https://img.youtube.com/vi/RGQAX032NWg/hqdefault.jpg" alt="三頭下壓">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C1. 三頭肌下壓</div>
+            <div class="meta-row"><span>3 組</span> <span>12-15 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">消除掰掰袖，上臂不動。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d2-c1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d2-c2">
+        <div class="media-container" onclick="loadVideo(this, '1GfYuHvGBmc')">
+            <img src="https://img.youtube.com/vi/1GfYuHvGBmc/hqdefault.jpg" alt="彎舉">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C2. 啞鈴彎舉</div>
+            <div class="meta-row"><span>3 組</span> <span>12-15 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d2-c2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d2-cardio" style="border-left: 5px solid #007bff;">
+        <div class="media-container" onclick="loadVideo(this, 'MjnTPu2peh0')">
+            <img src="https://img.youtube.com/vi/MjnTPu2peh0/hqdefault.jpg" alt="樓梯機">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">🏃‍♀️ 樓梯機有氧 (重訓後)</div>
+            <div class="cue-text">建議時間：20-30 分鐘</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d2-cardio')">完成動作</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="day3" class="day-content">
+    
+    <div class="exercise-card" id="d3-a1">
+        <div class="media-container" onclick="loadVideo(this, 'l-ZcZzCLX5M')">
+            <img src="https://img.youtube.com/vi/l-ZcZzCLX5M/hqdefault.jpg" alt="彈力帶臀推">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A1. 彈力帶臀推</div>
+            <div class="meta-row"><span>4 組</span> <span>15-20 次</span></div>
+            <div class="tempo-tag">節奏 3-1-2-1</div>
+            <div class="cue-text">頂峰夾臀 1 秒，慢 3 秒下放。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d3-a1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d3-a2">
+        <div class="media-container" onclick="loadVideo(this, 'fdM5tfFtndM')">
+            <img src="https://img.youtube.com/vi/fdM5tfFtndM/hqdefault.jpg" alt="單腿RDL">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A2. 徒手單腿 RDL</div>
+            <div class="meta-row"><span>4 組</span> <span>每腳 12-15 次</span></div>
+            <div class="tempo-tag">節奏 3-1-2-1</div>
+            <div class="cue-text">慢 3 秒下放，保持骨盆水平。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d3-a2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d3-b1">
+        <div class="media-container" onclick="loadVideo(this, 'TdfRsUbODlM')">
+            <img src="https://img.youtube.com/vi/TdfRsUbODlM/hqdefault.jpg" alt="側臥抬腿">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">B1. 側臥抬腿</div>
+            <div class="meta-row"><span>3 組</span> <span>每邊 15-20 次</span></div>
+            <div class="tempo-tag">節奏 3-1-2-1</div>
+            <div class="cue-text">強化臀中肌，修飾臀型外側。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d3-b1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d3-b2">
+        <div class="media-container" onclick="loadVideo(this, 'MEXQO6R520k')">
+            <img src="https://img.youtube.com/vi/MEXQO6R520k/hqdefault.jpg" alt="棒式">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">B2. 棒式 (Plank)</div>
+            <div class="meta-row"><span>3 組</span> <span>45-60 秒</span></div>
+            <div class="tempo-tag">等長收縮</div>
+            <div class="cue-text">保持核心收緊。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d3-b2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d3-c1">
+        <div class="media-container" onclick="loadVideo(this, 'YU9QNkRvWJY')">
+            <img src="https://img.youtube.com/vi/YU9QNkRvWJY/hqdefault.jpg" alt="橋式">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C1. 橋式夾球/枕頭</div>
+            <div class="meta-row"><span>3 組</span> <span>20-25 次</span></div>
+            <div class="tempo-tag">節奏 3-1-2-1</div>
+            <div class="cue-text">頂峰用力夾球 1 秒。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d3-c1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d3-c2">
+        <div class="media-container" onclick="loadVideo(this, 'FH81s7V0sYc')">
+            <img src="https://img.youtube.com/vi/FH81s7V0sYc/hqdefault.jpg" alt="鳥狗式">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C2. 鳥狗式 (Bird Dog)</div>
+            <div class="meta-row"><span>3 組</span> <span>每邊 10-12 次</span></div>
+            <div class="tempo-tag">等長控制</div>
+            <div class="cue-text">手腳伸直時停留 1-2 秒。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d3-c2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d3-cardio" style="border-left: 5px solid #007bff;">
+        <div class="media-container" onclick="loadVideo(this, 'w8qUYJ2UJtE')">
+            <img src="https://img.youtube.com/vi/w8qUYJ2UJtE/hqdefault.jpg" alt="超慢跑">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">🏃‍♀️ 超慢跑有氧 (重訓後)</div>
+            <div class="cue-text">建議時間：20-30 分鐘</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d3-cardio')">完成動作</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="day4" class="day-content">
+    
+    <div class="exercise-card" id="d4-a1">
+        <div class="media-container" onclick="loadVideo(this, '55WRbA8hhvE')">
+            <img src="https://img.youtube.com/vi/55WRbA8hhvE/hqdefault.jpg" alt="伏地挺身">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A1. 跪姿伏地挺身</div>
+            <div class="meta-row"><span>4 組</span> <span>接近力竭</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">慢 3 秒下放，胸口靠近地面。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d4-a1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d4-a2">
+        <div class="media-container" onclick="loadVideo(this, 'ebMzPgeZNeg')">
+            <img src="https://img.youtube.com/vi/ebMzPgeZNeg/hqdefault.jpg" alt="彈力帶划船">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">A2. 彈力帶划船</div>
+            <div class="meta-row"><span>4 組</span> <span>15-20 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">慢 3 秒回放，1 秒夾背。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d4-a2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d4-b2">
+        <div class="media-container" onclick="loadVideo(this, 'ekmctIBUbEE')">
+            <img src="https://img.youtube.com/vi/ekmctIBUbEE/hqdefault.jpg" alt="超人式">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">B2. 超人式 (Superman)</div>
+            <div class="meta-row"><span>3 組</span> <span>12-15 次</span></div>
+            <div class="tempo-tag">節奏 2-1-2-1</div>
+            <div class="cue-text">抬起停留 1 秒，慢 2 秒放下。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d4-b2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d4-c1">
+        <div class="media-container" onclick="loadVideo(this, 'Ahusq-Ry-Ss')">
+            <img src="https://img.youtube.com/vi/Ahusq-Ry-Ss/hqdefault.jpg" alt="牆壁伏地">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C1. 牆壁伏地挺身</div>
+            <div class="meta-row"><span>3 組</span> <span>12-15 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">手肘靠近身體，集中訓練三頭肌，慢 3 秒貼近。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d4-c1')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d4-c2">
+        <div class="media-container" onclick="loadVideo(this, 'ynEE32gDFpQ')">
+            <img src="https://img.youtube.com/vi/ynEE32gDFpQ/hqdefault.jpg" alt="彎舉">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">C2. 集中彎舉</div>
+            <div class="meta-row"><span>3 組</span> <span>15-20 次</span></div>
+            <div class="tempo-tag">節奏 3-0-1-0</div>
+            <div class="cue-text">慢 3 秒放下重物。</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d4-c2')">完成動作</button></div>
+        </div>
+    </div>
+
+    <div class="exercise-card" id="d4-cardio" style="border-left: 5px solid #007bff;">
+        <div class="media-container" onclick="loadVideo(this, 'w8qUYJ2UJtE')">
+            <img src="https://img.youtube.com/vi/w8qUYJ2UJtE/hqdefault.jpg" alt="超慢跑">
+            <div class="play-icon"></div>
+        </div>
+        <div class="card-content">
+            <div class="exercise-title">🏃‍♀️ 超慢跑有氧 (重訓後)</div>
+            <div class="cue-text">建議時間：20-30 分鐘</div>
+            <div class="action-area"><button class="check-btn" onclick="toggleComplete('d4-cardio')">完成動作</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    已準備好開始今天的訓練！加油！💪
+</div>
+
+<script>
+    // --- 核心邏輯區 ---
+
+    // 1. 初始化：網頁載入時執行
+    window.onload = function() {
+        try {
+            // 讀取 LocalStorage 進度
+            const savedData = localStorage.getItem('fitnessProgress');
+            if (savedData) {
+                const completedTasks = JSON.parse(savedData);
+                completedTasks.forEach(id => {
+                    const card = document.getElementById(id);
+                    if(card) {
+                        card.classList.add('completed');
+                        const btn = card.querySelector('.check-btn');
+                        if(btn) btn.innerText = "✓ 已完成";
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn("無法讀取 LocalStorage (可能為無痕模式)", e);
+        }
+        updateProgressBar(); // 初始更新進度條
+    };
+
+    // 2. 切換分頁 (Tabs)
+    window.switchDay = function(dayId, btn) {
+        // 隱藏所有頁面
+        document.querySelectorAll('.day-content').forEach(el => el.classList.remove('active'));
+        // 顯示目標頁面
+        document.getElementById(dayId).classList.add('active');
+        
+        // 更新按鈕狀態
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // 滾動回最上方
+        window.scrollTo(0, 0);
+    }
+
+    // 3. 更新進度條 UI
+    function updateProgressBar() {
+        const totalTasks = document.querySelectorAll('.exercise-card').length;
+        const completedTasks = document.querySelectorAll('.exercise-card.completed').length;
+        
+        let percent = 0;
+        if(totalTasks > 0) {
+            percent = Math.round((completedTasks / totalTasks) * 100);
+        }
+        
+        document.getElementById('progressBar').style.width = percent + "%";
+        document.getElementById('progressText').innerText = `總進度 ${percent}% (${completedTasks}/${totalTasks})`;
+    }
+
+    // 4. 打勾/取消打勾功能
+    window.toggleComplete = function(id) {
+        const card = document.getElementById(id);
+        if(!card) return; // 防呆
+        
+        const btn = card.querySelector('.check-btn');
+        card.classList.toggle('completed');
+        
+        // 更新按鈕文字
+        if (card.classList.contains('completed')) {
+            btn.innerText = "✓ 已完成";
+        } else {
+            btn.innerText = "完成動作";
+        }
+
+        // 儲存進度
+        saveProgress();
+        updateProgressBar();
+    }
+
+    // 5. 儲存到 LocalStorage
+    function saveProgress() {
+        try {
+            const completedCards = document.querySelectorAll('.exercise-card.completed');
+            const ids = Array.from(completedCards).map(card => card.id);
+            localStorage.setItem('fitnessProgress', JSON.stringify(ids));
+        } catch (e) {
+            console.warn("無法儲存 (可能為無痕模式)");
+        }
+    }
+
+    // 6. 重置進度功能 (綁定在 window 確保全域可呼叫)
+    window.confirmReset = function() {
+        if(confirm("確定要重置所有進度嗎？\n這將會清除所有已完成的動作紀錄。")) {
+            try {
+                localStorage.removeItem('fitnessProgress');
+            } catch(e) {}
+
+            // UI 重置
+            const cards = document.querySelectorAll('.exercise-card');
+            cards.forEach(card => {
+                card.classList.remove('completed');
+                const btn = card.querySelector('.check-btn');
+                if(btn) btn.innerText = "完成動作";
+            });
+            
+            updateProgressBar();
+            alert("進度已重置！加油！");
+        }
+    }
+
+    // 7. 載入影片 (點擊圖片變影片)
+    window.loadVideo = function(container, videoId) {
+        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allowfullscreen allow="autoplay"></iframe>`;
+    }
+</script>
+
+</body>
 </html>
