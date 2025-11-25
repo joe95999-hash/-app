@@ -379,12 +379,12 @@
             font-weight: bold;
         }
 
-        /* --- 慶祝動畫 Overlay (修正版) --- */
+        /* --- 慶祝動畫 Overlay --- */
         #celebration-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.95);
-            z-index: 10001; /* 確保在最上層 */
+            z-index: 10001;
             display: none;
             flex-direction: column;
             align-items: center;
@@ -448,7 +448,7 @@
     <header>
         <button id="resetBtn" class="header-btn" onclick="window.confirmReset()">↺ 重置</button>
         <h1>Snoopy 增肌特訓</h1>
-        <img src="snoopypic.jpg" class="snoopy-bg-decor" alt="decor">
+        <img src="snoopypic" class="snoopy-bg-decor" alt="decor">
         <div style="width: 40px;"></div>
     </header>
 
@@ -471,7 +471,7 @@
 </div>
 
 <div class="tips-box">
-    <img src="snoopypic.jpg" class="snoopy-avatar" alt="Coach">
+    <img src="snoopypic" class="snoopy-avatar" alt="Coach">
     <div>
         <strong>🐶 Snoopy 教練說：</strong><br>
         看著上面的我慢慢走到終點吧！<br>
@@ -935,9 +935,9 @@
                 });
             }
         } catch (e) {
-            console.warn("無法讀取 LocalStorage (可能為無痕模式)", e);
+            console.warn("無法讀取 LocalStorage", e);
         }
-        updateProgressBar(); // 初始更新進度條
+        updateProgressBar();
     };
 
     // 2. 切換分頁 (Tabs)
@@ -947,9 +947,7 @@
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         btn.classList.add('active');
         window.scrollTo(0, 0);
-        
-        // 切換頁面時，順便檢查是否該顯示慶祝（以防萬一）
-        checkCelebration(dayId);
+        checkCelebration(dayId); // 切換時檢查
     }
 
     // 3. 更新進度條 UI (加入 Snoopy 走路邏輯)
@@ -1014,7 +1012,6 @@
         const totalInDay = container.querySelectorAll('.exercise-card').length;
         const completedInDay = container.querySelectorAll('.exercise-card.completed').length;
 
-        // 如果該日所有任務都完成，且數量大於0
         if (totalInDay > 0 && totalInDay === completedInDay) {
             showCelebration();
         }
@@ -1034,32 +1031,24 @@
             const completedCards = document.querySelectorAll('.exercise-card.completed');
             const ids = Array.from(completedCards).map(card => card.id);
             localStorage.setItem('fitnessProgress', JSON.stringify(ids));
-        } catch (e) {
-            console.warn("無法儲存 (可能為無痕模式)");
-        }
+        } catch (e) {}
     }
 
     // 6. 重置進度功能
     window.confirmReset = function() {
-        if(confirm("確定要重置所有進度嗎？\n這將會清除所有已完成的動作紀錄。")) {
-            try {
-                localStorage.removeItem('fitnessProgress');
-            } catch(e) {}
-
-            // UI 重置
+        if(confirm("確定要重置所有進度嗎？")) {
+            try { localStorage.removeItem('fitnessProgress'); } catch(e) {}
             const cards = document.querySelectorAll('.exercise-card');
             cards.forEach(card => {
                 card.classList.remove('completed');
                 const btn = card.querySelector('.check-btn');
                 if(btn) btn.innerText = "🐾 完成動作";
             });
-            
             updateProgressBar();
             alert("進度已重置！加油！");
         }
     }
 
-    // 7. 載入影片
     window.loadVideo = function(container, videoId) {
         container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allowfullscreen allow="autoplay"></iframe>`;
     }
