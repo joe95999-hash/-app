@@ -38,7 +38,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- 頂部固定區 (Header + Progress) --- */
+        /* --- 頂部固定區 --- */
         .sticky-top {
             position: sticky;
             top: 0;
@@ -49,7 +49,7 @@
         }
 
         header {
-            background: var(--primary); /* 黃色背景 */
+            background: var(--primary);
             padding: 15px 20px;
             padding-top: max(15px, env(safe-area-inset-top));
             display: flex;
@@ -60,13 +60,13 @@
             overflow: hidden;
         }
 
-        /* 裝飾用 Snoopy Pic (背景浮水印) */
+        /* 裝飾用 Snoopy Pic */
         .snoopy-bg-decor {
             position: absolute;
             right: -20px;
             bottom: -30px;
             width: 100px;
-            opacity: 0.2; /* 半透明 */
+            opacity: 0.2;
             transform: rotate(-10deg);
             pointer-events: none;
         }
@@ -100,10 +100,10 @@
             box-shadow: none;
         }
 
-        /* --- Snoopy 走路進度條 (重點功能) --- */
+        /* --- Snoopy 走路進度條 --- */
         .progress-area {
             background: #FFF;
-            padding: 25px 10px 5px 10px; /* 預留上方給 Snoopy */
+            padding: 25px 10px 5px 10px;
             position: relative;
             border-bottom: var(--comic-border);
         }
@@ -117,7 +117,6 @@
             position: relative;
         }
 
-        /* 綠色進度填充 */
         .progress-fill {
             background: #8BC34A; /* 草地綠 */
             height: 100%;
@@ -129,16 +128,15 @@
         /* Snoopy 走路 GIF */
         .snoopy-walker {
             position: absolute;
-            top: -35px; /* 站在進度條上面 */
-            left: 0%; /* 跟隨進度移動 */
+            top: -35px;
+            left: 0%;
             width: 50px;
             height: auto;
-            transform: translateX(-25px); /* 修正中心點 */
-            transition: left 0.5s ease; /* 平滑移動 */
+            transform: translateX(-25px);
+            transition: left 0.5s ease;
             z-index: 5;
         }
 
-        /* 終點旗幟 */
         .finish-line {
             position: absolute;
             right: 0;
@@ -154,7 +152,7 @@
             margin-top: 5px;
         }
 
-        /* --- 分頁籤 (Tabs) --- */
+        /* --- 分頁籤 --- */
         .tabs {
             display: flex;
             background: #FFF;
@@ -178,7 +176,7 @@
             top: 3px;
         }
         .tab-btn.active {
-            background: var(--primary); /* 選中變黃色 */
+            background: var(--primary);
             color: var(--secondary);
             top: 0;
             padding-bottom: 13px;
@@ -201,8 +199,6 @@
             align-items: flex-start;
             gap: 10px;
         }
-        
-        /* 裝飾頭像 */
         .snoopy-avatar {
             width: 50px;
             height: 50px;
@@ -231,7 +227,7 @@
             padding: 0;
             border-radius: 16px;
             border: var(--comic-border);
-            box-shadow: 6px 6px 0 rgba(0,0,0,0.15); /* 厚重的漫畫陰影 */
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.15);
             transition: transform 0.1s;
             overflow: hidden;
             position: relative;
@@ -285,7 +281,6 @@
             z-index: 3;
         }
 
-        /* 卡片內容 */
         .card-content { padding: 15px 20px; }
 
         .exercise-title {
@@ -331,7 +326,6 @@
             font-style: italic;
         }
 
-        /* 打勾按鈕區 */
         .action-area {
             text-align: right;
             border-top: 2px dashed #CCC;
@@ -358,9 +352,8 @@
             box-shadow: 2px 2px 0 #DDD;
         }
         
-        /* 完成狀態 */
         .exercise-card.completed {
-            background: #F1F8E9; /* 淡淡綠 */
+            background: #F1F8E9;
             border-color: var(--green);
         }
         .exercise-card.completed .exercise-title {
@@ -386,25 +379,28 @@
             font-weight: bold;
         }
 
-        /* --- 慶祝動畫 Overlay --- */
+        /* --- 慶祝動畫 Overlay (修正版) --- */
         #celebration-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.95);
-            z-index: 9999;
+            z-index: 10001; /* 確保在最上層 */
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 20px;
+            box-sizing: border-box;
+            animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
+        @keyframes zoomIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
         .snoopy-clapping {
-            width: 200px;
+            width: 250px;
+            height: auto;
             margin-bottom: 20px;
             border: 4px solid var(--secondary);
             border-radius: 20px;
@@ -442,7 +438,7 @@
 <body>
 
 <div id="celebration-overlay">
-    <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmJ5bnZ4bm82b3E3d3Z4eWJ4eHZ4eWJ4eHZ4eWJ4eHZ4eWJ4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o6Zt481isNBF9kUlq/giphy.gif" class="snoopy-clapping" alt="Snoopy Clapping">
+    <img src="snoopygif.gif" class="snoopy-clapping" alt="Snoopy Clapping">
     <div class="celebrate-title">太棒了又完成了一天！！</div>
     <div class="celebrate-msg">循序漸進，離目標不遠囉～ ❤️</div>
     <button class="close-celebrate-btn" onclick="closeCelebration()">收下鼓勵！</button>
@@ -453,7 +449,8 @@
         <button id="resetBtn" class="header-btn" onclick="window.confirmReset()">↺ 重置</button>
         <h1>Snoopy 增肌特訓</h1>
         <img src="snoopypic.jpg" class="snoopy-bg-decor" alt="decor">
-        <div style="width: 40px;"></div> </header>
+        <div style="width: 40px;"></div>
+    </header>
 
     <div class="progress-area">
         <img src="snoopywalking.gif" id="snoopyWalker" class="snoopy-walker" alt="Walking Snoopy">
