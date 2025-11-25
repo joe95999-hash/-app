@@ -379,12 +379,12 @@
             font-weight: bold;
         }
 
-        /* --- 慶祝動畫 Overlay --- */
+        /* --- 慶祝動畫 Overlay (修正版) --- */
         #celebration-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.95);
-            z-index: 10001;
+            z-index: 10001; /* 確保在最上層 */
             display: none;
             flex-direction: column;
             align-items: center;
@@ -448,7 +448,7 @@
     <header>
         <button id="resetBtn" class="header-btn" onclick="window.confirmReset()">↺ 重置</button>
         <h1>Snoopy 增肌特訓</h1>
-        <img src="snoopypic" class="snoopy-bg-decor" alt="decor">
+        <img src="snoopypic.jpg" class="snoopy-bg-decor" alt="decor">
         <div style="width: 40px;"></div>
     </header>
 
@@ -471,7 +471,7 @@
 </div>
 
 <div class="tips-box">
-    <img src="snoopypic" class="snoopy-avatar" alt="Coach">
+    <img src="snoopypic.jpg" class="snoopy-avatar" alt="Coach">
     <div>
         <strong>🐶 Snoopy 教練說：</strong><br>
         看著上面的我慢慢走到終點吧！<br>
@@ -918,10 +918,8 @@
 <script>
     // --- 核心邏輯區 ---
 
-    // 1. 初始化：網頁載入時執行
     window.onload = function() {
         try {
-            // 讀取 LocalStorage 進度
             const savedData = localStorage.getItem('fitnessProgress');
             if (savedData) {
                 const completedTasks = JSON.parse(savedData);
@@ -940,7 +938,6 @@
         updateProgressBar();
     };
 
-    // 2. 切換分頁 (Tabs)
     window.switchDay = function(dayId, btn) {
         document.querySelectorAll('.day-content').forEach(el => el.classList.remove('active'));
         document.getElementById(dayId).classList.add('active');
@@ -950,7 +947,6 @@
         checkCelebration(dayId); // 切換時檢查
     }
 
-    // 3. 更新進度條 UI (加入 Snoopy 走路邏輯)
     function updateProgressBar() {
         const totalTasks = document.querySelectorAll('.exercise-card').length;
         const completedTasks = document.querySelectorAll('.exercise-card.completed').length;
@@ -960,51 +956,39 @@
             percent = Math.round((completedTasks / totalTasks) * 100);
         }
         
-        // 更新綠色條
         document.getElementById('progressBar').style.width = percent + "%";
-        
-        // 更新文字
         document.getElementById('progressText').innerText = `總進度 ${percent}% (${completedTasks}/${totalTasks})`;
 
-        // ★ 更新 Snoopy 位置 ★
-        // 讓 Snoopy 走在進度條前端，減去一些寬度以免衝出邊界
         const walker = document.getElementById('snoopyWalker');
         if(walker) {
-            // 限制最大 90% 以免擋住旗子
             const walkPos = Math.min(percent, 92); 
             walker.style.left = walkPos + "%";
         }
     }
 
-    // 4. 打勾/取消打勾功能
     window.toggleComplete = function(id) {
-        event.stopPropagation(); // 防止觸發影片點擊
+        event.stopPropagation();
         const card = document.getElementById(id);
         if(!card) return; 
         
         const btn = card.querySelector('.check-btn');
         card.classList.toggle('completed');
         
-        // 更新按鈕文字
         if (card.classList.contains('completed')) {
             btn.innerText = "★ 已完成";
         } else {
             btn.innerText = "🐾 完成動作";
         }
 
-        // 儲存進度
         saveProgress();
         updateProgressBar();
 
-        // ★★★ 檢查慶祝條件 ★★★
         const activeDay = document.querySelector('.day-content.active').id;
-        // 只有在動作變成「完成」狀態時才檢查
         if (card.classList.contains('completed')) {
             checkCelebration(activeDay);
         }
     }
 
-    // 檢查是否該顯示慶祝動畫
     function checkCelebration(dayId) {
         const container = document.getElementById(dayId);
         if (!container) return;
@@ -1025,7 +1009,6 @@
         document.getElementById('celebration-overlay').style.display = 'none';
     }
 
-    // 5. 儲存到 LocalStorage
     function saveProgress() {
         try {
             const completedCards = document.querySelectorAll('.exercise-card.completed');
@@ -1034,7 +1017,6 @@
         } catch (e) {}
     }
 
-    // 6. 重置進度功能
     window.confirmReset = function() {
         if(confirm("確定要重置所有進度嗎？")) {
             try { localStorage.removeItem('fitnessProgress'); } catch(e) {}
